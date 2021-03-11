@@ -41,16 +41,26 @@ Route::group(['middleware' => ['auth']], function () {
 });
 
 
-
 Route::group(['middleware' => ['auth']], function () {
-        Route::group(['prefix' => 'users/{id}'], function () {
+    Route::group(['prefix' => 'users/{id}'], function () {
         Route::post('follow', 'UserFollowController@store')->name('user.follow');
         Route::delete('unfollow', 'UserFollowController@destroy')->name('user.unfollow');
         Route::get('followings', 'UsersController@followings')->name('users.followings');
         Route::get('followers', 'UsersController@followers')->name('users.followers');
+        Route::get('favorites', 'UsersController@favorites')->name('users.favorites');    // 追加
+    });
+    
+
+    Route::resource('microposts', 'MicropostsController', ['only' => ['store', 'destroy','favorites2']]);
+
+    Route::group(['prefix' => 'microposts/{id}'], function () {
+        Route::post('favorite', 'FavoritesController@store')->name('microposts.favorite');
+        Route::delete('unfavorite', 'FavoritesController@destroy')->name('microposts.unfavorite');
     });
 
-    Route::resource('users', 'UsersController', ['only' => ['index', 'show']]);
-
-    Route::resource('microposts', 'MicropostsController', ['only' => ['store', 'destroy']]);
+    Route::group(['middleware' => ['auth']], function () {
+        Route::group(['prefix' => 'users/{user}'], function () {
+            Route::get('favorites2', 'UsersController@favorites2')->name('users.favorites2');
+        });
+    });
 });

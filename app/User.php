@@ -50,7 +50,7 @@ class User extends Authenticatable
      */
     public function loadRelationshipCounts()
     {
-        $this->loadCount(['microposts', 'followings', 'followers']);
+        $this->loadCount(['microposts', 'followings', 'followers','favorites']);
     }
     
 
@@ -128,4 +128,84 @@ class User extends Authenticatable
         // それらのユーザが所有する投稿に絞り込む
         return Micropost::whereIn('user_id', $userIds);
     }
+
+    /**
+     * このユーザがお気に入り登録した投稿。（Micropostモデルとの関係を定義）
+     */
+    public function favorites()
+    {
+        return $this->belongsToMany(Micropost::class, 'favorites', 'user_id', 'microposts_id')->withTimestamps();
+    }
+
+
+    /**
+     * お気に入り中であるか調べる。登録済みならtrueを返す。
+     *
+     * @param  int  $userId
+     * @return bool
+     */
+    public function is_favoriting($userId)
+    {
+        // 
+        return $this->favoritings()->where('microposts_id', $userId)->exists();
+    }
+
+    /**
+     * お気に入り追加機能
+     */
+    public function favorite($micropostId)
+    {
+        // すでにしているかの確認
+        $exist = $this->is_favoriting($micropostId);
+        // 対象が自分自身かどうかの確認
+        $its_me = $this->id == $micropostId;
+
+        if ($exist || $its_me) {
+            // すでにしていれば何もしない
+            return false;
+        } else {
+            // 未であればする
+            $this->favoritings()->attach($micropostId);
+            return true;
+        }
+    }
+
+    /**
+     * お気に入り解除機能
+     */
+    public function unfavorite($micropostId)
+        {
+            // すでにお気に入りしているかの確認
+            $exist = $this->is_favoriting($micropostId);
+            // 対象が自分自身かどうかの確認
+            $its_me = $this->id == $micropostId;
+    
+            if ($exist && !$its_me) {
+                // すでにお気に入りしていれば外す
+                $this->favoritings()->detach($micropostId);
+                return true;
+            } else {
+                // 未であれば何もしない
+                return false;
+            }
+        }
+
+
+  /**
+     * このユーザがお気に入り登録中の投稿。（ Micropostモデルとの関係を定義）
+     */
+    public function favoritings()
+    {
+        return $this->belongsToMany(Micropost::class, 'favorites', 'user_id', 'microposts_id')->withTimestamps();
+    }
+
+    /**
+     * このユーザをフォロー中のユーザ。（ Userモデルとの関係を定義）
+     */
+    public function favoriters()
+    {
+        return $this->belongsToMany(User::class, 'favorites', 'microposts_id', 'user_id')->withTimestamps();
+    }
+
+
 }
