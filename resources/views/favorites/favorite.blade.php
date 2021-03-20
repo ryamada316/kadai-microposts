@@ -18,7 +18,7 @@
                     </div>
 
                     <div>
-                        @if (Auth::id() != $favorite->user_id)
+                        {{--@if (Auth::id() != $favorite->user_id)--}}
                             @if (Auth::user()->is_favoriting($favorite->id))
                                 {{-- お気に入り追加・解除のフォーム --}}
                                 {!! Form::open(['route' => ['microposts.unfavorite', $favorite->id], 'method' => 'delete']) !!}
@@ -29,7 +29,7 @@
                                     {!! Form::submit('Favorite', ['class' => 'btn btn-primary btn-sm']) !!}
                                 {!! Form::close() !!}
                             @endif
-                        @endif
+                        {{--@endif--}}
                     </div>
 
                 </div>
